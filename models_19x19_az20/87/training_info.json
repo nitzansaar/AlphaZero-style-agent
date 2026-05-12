@@ -1,0 +1,9 @@
+{
+  "avg_selfplay_game_moves": 197.351,
+  "batch_size": 512,
+  "global_minibatch_step": 130500,
+  "global_step_samples": 66816000,
+  "iteration": 87,
+  "total_num_data_rows": 500000,
+  "train_steps_per_iteration": 1500
+}
