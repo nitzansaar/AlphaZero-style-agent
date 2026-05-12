@@ -12,8 +12,7 @@ network trained from scratch via self-play on 19×19 Go.
 2. [Training](#training)
 3. [Evaluating against KataGo](#evaluating-against-katago)
    - [Quick start — single 100-game match](#quick-start--single-100-game-match)
-   - [Full ladder — all iterations vs all KataGo ELOs](#full-ladder--all-iterations-vs-all-katago-elos)
-   - [Direct Python script](#direct-python-script)
+4. [Notebook](#notebook)
 
 ---
 
@@ -24,7 +23,6 @@ network trained from scratch via self-play on 19×19 Go.
 | AZ20 checkpoints | `models_19x19_az20/<iter>/` | Each subfolder has `model.pt` (state dict) and `model_ts.pt` (TorchScript). |
 | C++ selfplay binary | `selfplay_cpp_19` | Built with `make selfplay_cpp_19`. Required for training. |
 | GTP engine binary | `gtp_engine_19` | Built with `make gtp_engine_19`. Required for evaluation. |
-| KataGo binary | `KataGo/cpp/katago` | Compiled KataGo. See `KataGo/Compiling.md`. Required for evaluation. |
 | Pretrained KataGo models | `pretrained_katago_models/` | Available ELOs: **482**, **802**, **1070**. |
 | Python env | `.venv/` or system `python3` | Requires PyTorch. Scripts auto-detect `.venv/bin/python`. |
 
@@ -89,17 +87,6 @@ latest checkpoint on the next run. Progress is logged to `logs_19x19_az20/`.
 | `LOGDIR` | `logs_19x19_az20/` | Per-iteration training history CSVs. |
 
 Edit `config.py` (`Config19x19Base`) to change any of these before starting a run.
-
-### Monitoring training
-
-Each iteration appends a `<iter>_history.csv` to `logs_19x19_az20/`. To plot
-loss curves across all iterations:
-
-```bash
-cd go
-python3 visualize_training.py
-# Output image: test_output_19x19_az20/
-```
 
 ### Output layout
 
@@ -176,75 +163,11 @@ Avg moves    : 203.4
 CSV          : results/az20_iter0146_vs_katago_elo482_v60_100g_20260511-120000.csv
 ```
 
-### Full ladder — all iterations vs all KataGo ELOs
-
-To sweep across multiple AZ iterations and KataGo tiers in one go:
-
-```bash
-cd go
-./run_az20_katago_ladder.sh
-```
-
-This runs every combination in the default grid:
-
-- **KataGo ELOs**: 482, 802, 1070
-- **AZ iterations**: 29, 58, 87, 117, 146
-
-Override the grid with environment variables:
-
-```bash
-# Subset ladder: two iterations vs two ELOs, 50 games each
-KATAGO_ELOS="482 1070" AZ_ITERATIONS="87 146" GAMES=50 ./run_az20_katago_ladder.sh
-
-# Quick ladder with reduced search (for speed)
-GAMES=20 AZ_SIMS=80 KATAGO_VISITS=20 ./run_az20_katago_ladder.sh
-```
-
-Output lands in a timestamped directory:
-
-```
-results/az20_katago_ladder_<timestamp>/
-  summary.csv          <- one row per matchup with win rates and CI
-  run.log              <- full console output
-  games/               <- per-matchup CSV files
-```
-
-### Direct Python script
-
-For finer control, call `az_vs_katago_19x19.py` directly:
-
-```bash
-cd go
-
-# 20-game match against ELO 482, save results to CSV
-python3 az_vs_katago_19x19.py \
-    --games 20 \
-    --az-model models_19x19_az20/146/model_ts.pt \
-    --az-sims 160 --az-batch 32 \
-    --katago-elo 482 --katago-visits 60 \
-    --csv results/my_test.csv
-
-# Quick 2-game smoke test (prints every move)
-python3 az_vs_katago_19x19.py \
-    --games 2 --az-sims 8 --katago-visits 4 --verbose
-
-# Pin AZ to always play Black
-python3 az_vs_katago_19x19.py \
-    --games 10 --az-first-color black --katago-elo 802
-```
-
-Full flag reference:
-
-| Flag | Default | Meaning |
-|---|---|---|
-| `--games` | `20` | Number of games to play. |
-| `--az-model` | auto | Path to `model_ts.pt`; auto-picks the latest iteration if omitted. |
-| `--az-sims` | `160` | MCTS simulations per AZ move. |
-| `--az-batch` | `32` | Neural-net batch size. |
-| `--katago-elo` | `19` | KataGo pretrained model tier. |
-| `--katago-visits` | `60` | KataGo search visits per move. |
-| `--az-first-color` | `alternate` | `black`/`white` to pin AZ's colour; `alternate` flips each game. |
-| `--csv` | none | Append per-game rows to this CSV (header written on first call). |
-| `--verbose` | off | Print every move. |
-
 ---
+
+## Notebook
+
+`notebooks/alphazero_vs_katago_19x19.ipynb` plays one full game between an AZ
+checkpoint and a pretrained KataGo model and plots every board position. Edit
+the configuration cell at the top to choose the AZ iteration and KataGo ELO,
+then run all cells.
