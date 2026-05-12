@@ -1,0 +1,8 @@
+{
+  "batch_size": 512,
+  "global_minibatch_step": 43500,
+  "global_step_samples": 22272000,
+  "iteration": 29,
+  "total_num_data_rows": 108257,
+  "train_steps_per_iteration": 1500
+}
